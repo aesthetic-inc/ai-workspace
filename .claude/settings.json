@@ -1,0 +1,73 @@
+{
+  "permissions": {
+    "allow": [
+      "npm install",
+      "npm run *",
+      "npm test",
+      "npm build",
+      "yarn install",
+      "yarn add *",
+      "yarn run *",
+      "pnpm install",
+      "pnpm add *",
+      "pnpm run *",
+      "git status",
+      "git diff *",
+      "git log *",
+      "git branch *",
+      "git checkout *",
+      "git add *",
+      "git commit *",
+      "git fetch",
+      "git pull",
+      "git stash *",
+      "cat *",
+      "ls *",
+      "find *",
+      "grep *",
+      "head *",
+      "tail *",
+      "mkdir *",
+      "touch *",
+      "cp *",
+      "mv *",
+      "python *",
+      "pytest *",
+      "pip install *",
+      "node *",
+      "npx *",
+      "tsc *",
+      "eslint *",
+      "prettier *"
+    ],
+    "deny": [
+      "git push *",
+      "git push",
+      "rm -rf *",
+      "rm -rf /",
+      "sudo *",
+      "chmod 777 *",
+      "* > .env",
+      "* >> .env",
+      "echo * > .env*",
+      "cat * > .env*",
+      "curl * | sh",
+      "wget * | sh",
+      "eval *"
+    ]
+  },
+  "context": {
+    "includeFiles": [
+      "CLAUDE.md",
+      "README.md",
+      "package.json",
+      "tsconfig.json",
+      "pyproject.toml"
+    ]
+  },
+  "behavior": {
+    "autoApprove": false,
+    "verboseMode": false,
+    "maxFileSize": "1MB"
+  }
+}

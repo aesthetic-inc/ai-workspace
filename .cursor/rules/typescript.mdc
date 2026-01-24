@@ -1,0 +1,123 @@
+---
+description: TypeScript coding standards and best practices
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+# TypeScript Rules
+
+## Strict Type Safety
+
+### No `any` Type
+```typescript
+// ❌ Bad
+function process(data: any): any {
+  return data.value;
+}
+
+// ✅ Good
+function process<T extends { value: unknown }>(data: T): T['value'] {
+  return data.value;
+}
+
+// ✅ Good - Use unknown with type guards
+function processUnknown(data: unknown): string {
+  if (typeof data === 'object' && data !== null && 'value' in data) {
+    return String(data.value);
+  }
+  throw new Error('Invalid data structure');
+}
+```
+
+### Explicit Return Types
+```typescript
+// ❌ Bad
+function calculateTotal(items) {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+// ✅ Good
+function calculateTotal(items: CartItem[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+```
+
+### Strict Null Checks
+```typescript
+// ❌ Bad
+function getName(user: User) {
+  return user.name.toUpperCase();
+}
+
+// ✅ Good
+function getName(user: User): string {
+  return user.name?.toUpperCase() ?? 'Unknown';
+}
+```
+
+## Naming Conventions
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Interface | PascalCase, noun | `UserProfile`, `ApiResponse` |
+| Type | PascalCase | `ButtonVariant`, `Theme` |
+| Enum | PascalCase | `HttpStatus`, `UserRole` |
+| Constant | SCREAMING_SNAKE | `MAX_RETRY_COUNT`, `API_URL` |
+| Variable | camelCase | `userName`, `isActive` |
+| Function | camelCase, verb | `getUserById`, `validateInput` |
+| Class | PascalCase | `UserService`, `HttpClient` |
+
+## Import Organization
+
+Order imports in this sequence:
+1. Node built-ins (`fs`, `path`)
+2. External packages (`react`, `lodash`)
+3. Internal aliases (`@/components`, `@/utils`)
+4. Relative imports (`./utils`, `../types`)
+
+```typescript
+// 1. Node built-ins
+import { readFile } from 'fs/promises';
+
+// 2. External packages
+import React, { useState, useEffect } from 'react';
+import { z } from 'zod';
+
+// 3. Internal aliases
+import { Button } from '@/components/ui';
+import { formatDate } from '@/utils/date';
+import type { User } from '@/types';
+
+// 4. Relative imports
+import { validateForm } from './validation';
+import type { FormState } from './types';
+```
+
+## Interface vs Type
+
+```typescript
+// Use interface for object shapes (extendable)
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface AdminUser extends User {
+  permissions: string[];
+}
+
+// Use type for unions, primitives, tuples
+type Status = 'pending' | 'active' | 'inactive';
+type Coordinate = [number, number];
+type Nullable<T> = T | null;
+```
+
+## Utility Types
+
+Prefer built-in utility types:
+- `Partial<T>` - All properties optional
+- `Required<T>` - All properties required
+- `Pick<T, K>` - Select specific properties
+- `Omit<T, K>` - Exclude specific properties
+- `Record<K, V>` - Object with key type K and value type V
+- `Readonly<T>` - Immutable version
