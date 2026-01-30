@@ -17,6 +17,9 @@ now(){ TZ=Asia/Tokyo date +"%Y-%m-%d_%H-%M-%S"; }
 ensure_journal(){
   mkdir -p "$DEV"
   if [ ! -d "$JOURNAL/.git" ]; then
+    echo "⚠️  dev-journal not found. Auto-bootstrapping..."
+    command -v gh >/dev/null 2>&1 || die "gh が必要です: brew install gh"
+    gh auth status >/dev/null 2>&1 || die "GitHub未ログイン: gh auth login"
     cd "$DEV"
     gh repo clone "$ORG/dev-journal" "$JOURNAL" || die "dev-journal clone失敗"
   fi
@@ -35,7 +38,7 @@ journal_push(){
 
 usage(){
   cat <<USAGE
-DevOS v1.4
+DevOS v1.5
 
 Start:
   dev up 1     ← 毎朝これだけ
