@@ -342,58 +342,59 @@ cmd_start() {
 # ============================================
 cmd_stop() {
   need_cmd jq
-  ensure_journal
 
   echo -e "${YELLOW}=== dev stop ===${NC}"
 
-  ROOT=$(repo_root)
-  REPO=$(basename "$ROOT")
-  BRANCH=$(git -C "$ROOT" branch --show-current 2>/dev/null || echo "detached")
-  HEAD=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
-  DIRTY=$(git -C "$ROOT" status --porcelain | wc -l | tr -d ' ')
+  # ✅ FIX: capture work repo BEFORE touching journal
+  WORK_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) \
+    || die "Not in a git repo. Run dev stop inside a project repo."
+
+  WORK_REPO=$(basename "$WORK_ROOT")
+  WORK_BRANCH=$(git -C "$WORK_ROOT" branch --show-current 2>/dev/null || echo "detached")
+  WORK_HEAD=$(git -C "$WORK_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+  WORK_DIRTY=$(git -C "$WORK_ROOT" status --porcelain | wc -l | tr -d ' ')
+
   TS=$(now_jst)
-  PR=$(gh pr view --json number --jq '.number' 2>/dev/null || echo "null")
+  PR=$(gh pr view --repo "$ORG/$WORK_REPO" --json number --jq '.number' 2>/dev/null || echo "null")
   [ -z "$PR" ] && PR="null"
 
-  echo "Repo:   $REPO"
-  echo "Branch: $BRANCH"
-  echo "HEAD:   $HEAD"
-  echo "Dirty:  $DIRTY"
+  echo "Repo:   $WORK_REPO"
+  echo "Branch: $WORK_BRANCH"
+  echo "HEAD:   $WORK_HEAD"
+  echo "Dirty:  $WORK_DIRTY"
 
-  SNAP_ID="${TS}_${REPO}_${HEAD}"
+  # Now journal operations are safe
+  ensure_journal
+
+  SNAP_ID="${TS}_${WORK_REPO}_${WORK_HEAD}"
   SNAP_DIR="$JOURNAL/snapshots/$SNAP_ID"
   mkdir -p "$SNAP_DIR"
 
-  # Save patches (NO commit to work repo)
-  git -C "$ROOT" status --porcelain > "$SNAP_DIR/status.txt" 2>/dev/null || true
-  git -C "$ROOT" diff > "$SNAP_DIR/diff.patch" 2>/dev/null || true
-  git -C "$ROOT" diff --staged > "$SNAP_DIR/diff_staged.patch" 2>/dev/null || true
-  git -C "$ROOT" log --oneline -20 > "$SNAP_DIR/log.txt" 2>/dev/null || true
+  # Save patches from WORK_ROOT (never journal)
+  git -C "$WORK_ROOT" status --porcelain > "$SNAP_DIR/status.txt" 2>/dev/null || true
+  git -C "$WORK_ROOT" diff > "$SNAP_DIR/diff.patch" 2>/dev/null || true
+  git -C "$WORK_ROOT" diff --staged > "$SNAP_DIR/diff_staged.patch" 2>/dev/null || true
+  git -C "$WORK_ROOT" log --oneline -20 > "$SNAP_DIR/log.txt" 2>/dev/null || true
 
-  # Update LAST_SESSION
+  # Update LAST_SESSION correctly
   cat > "$JOURNAL/state/LAST_SESSION.json" <<EOF
 {
   "timestamp": "$TS",
-  "repo": "$REPO",
-  "branch": "$BRANCH",
-  "head": "$HEAD",
+  "repo": "$WORK_REPO",
+  "branch": "$WORK_BRANCH",
+  "head": "$WORK_HEAD",
   "snapshot": "$SNAP_ID",
   "open_pr": $PR
 }
 EOF
 
-  # Update ACTIVE_SESSIONS
+  # ACTIVE_SESSIONS append
   tmp=$(mktemp)
-  jq --arg ts "$TS" --arg repo "$REPO" --arg br "$BRANCH" --arg head "$HEAD" --arg snap "$SNAP_ID" \
+  jq --arg ts "$TS" --arg repo "$WORK_REPO" --arg br "$WORK_BRANCH" --arg head "$WORK_HEAD" --arg snap "$SNAP_ID" \
     '.sessions = [{"timestamp":$ts,"repo":$repo,"branch":$br,"head":$head,"snapshot":$snap}] + .sessions[:19]' \
     "$JOURNAL/state/ACTIVE_SESSIONS.json" > "$tmp" && mv "$tmp" "$JOURNAL/state/ACTIVE_SESSIONS.json"
 
-  # Daily log
-  mkdir -p "$JOURNAL/logs/$(date +%Y-%m-%d)"
-  echo "[$TS] $REPO@$BRANCH head=$HEAD dirty=$DIRTY" >> "$JOURNAL/logs/$(date +%Y-%m-%d)/sessions.log"
-
   journal_push
-
   rm -f "$SESSION_FLAG"
 
   ok "Session saved"
