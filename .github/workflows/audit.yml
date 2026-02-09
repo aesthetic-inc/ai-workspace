@@ -28,6 +28,17 @@ jobs:
           detect-secrets scan --baseline .secrets.baseline
           echo "✅ No new secrets"
 
+  env-block:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Block .env files
+        run: |
+          if git ls-files | grep -E "^\.env$|^\.env\.local$|^\.env\.production$"; then
+            echo "ERROR: .env files should not be committed"
+            exit 1
+          fi
+
   bootstrap-test:
     runs-on: ubuntu-latest
     steps:
