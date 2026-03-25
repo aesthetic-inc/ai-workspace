@@ -1,13 +1,3 @@
-<!-- CURRENT-STATE:BEGIN -->
-## 現在地 (自動更新: 2026-02-25 16:35 JST)
-
-| 項目 | 内容 |
-|------|------|
-| ステータス | 🟢 STABLE |
-| 最終コミット | `798bed7 security: fix npm vulnerabilities (#16) (2026-02-09)` |
-| 直近の作業 | - security: fix npm vulnerabilities (#16) - feat: v2.0 self-update DevOS on dev start (#15) - fix: v1.9 pull repo on dev start for cross-device sync (#14) |
-| 次アクション | (未記入) |
-<!-- CURRENT-STATE:END -->
 
 # AI Development Workspace
 
