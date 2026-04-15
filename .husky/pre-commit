@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# .husky/pre-commit for ai-workspace
+# Runs the claude-config size gate (warning-aware mode).
+
+GATE_SCRIPT="$HOME/dev/claude-code-config/scripts/git-hooks/pre-commit-claude-config.sh"
+if [[ -x "$GATE_SCRIPT" ]]; then
+  # warning-aware: failures produce WARN but do not block the commit
+  if ! "$GATE_SCRIPT" 2>&1; then
+    echo "[pre-commit] WARNING: size gate reported issues (non-blocking)" >&2
+  fi
+fi
