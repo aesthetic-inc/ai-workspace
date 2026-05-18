@@ -125,3 +125,5 @@ dmypy.json
 *.db
 *.sqlite
 *.sqlite3
+sync.sh.DEPRECATED
+.claude/settings.local.json
