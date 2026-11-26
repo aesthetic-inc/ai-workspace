@@ -8,16 +8,27 @@
 
 ## 初回セットアップ（新しいデバイス）
 
+このリポジトリは非公開です。ファイルの取得には GitHub CLI（`gh`）のログインが必要です。
+
+### 0. GitHub CLI でログイン（初回だけ）
+
+```bash
+brew install gh        # 未インストールの場合
+gh auth login          # aesthetic-inc にアクセスできるアカウントで
+gh auth setup-git      # git clone / pull でもこのログインを使う
+```
+
 ### 1. 全プロジェクトをクローン
 
 ```bash
-curl -sL https://raw.githubusercontent.com/aesthetic-inc/ai-workspace/main/bootstrap.sh | bash
+gh api repos/aesthetic-inc/ai-workspace/contents/bootstrap.sh -H "Accept: application/vnd.github.raw" | bash
 ```
 
 ### 2. sync.shをダウンロード
 
 ```bash
-curl -sL https://raw.githubusercontent.com/aesthetic-inc/ai-workspace/main/sync.sh -o ~/dev/sync.sh
+mkdir -p ~/dev
+gh api repos/aesthetic-inc/ai-workspace/contents/sync.sh -H "Accept: application/vnd.github.raw" > ~/dev/sync.sh
 chmod +x ~/dev/sync.sh
 ```
 

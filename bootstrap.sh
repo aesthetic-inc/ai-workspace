@@ -1,6 +1,6 @@
 #!/bin/bash
 # Bootstrap script for setting up development environment on a new device
-# Usage: curl -sL <raw-url> | bash
+# Usage (private repo): gh api repos/aesthetic-inc/ai-workspace/contents/bootstrap.sh -H "Accept: application/vnd.github.raw" | bash
 # Or: ./bootstrap.sh
 
 set -e
@@ -19,6 +19,13 @@ echo -e "${GREEN}=== Development Environment Bootstrap ===${NC}"
 # Check for required tools
 command -v git >/dev/null 2>&1 || { echo -e "${RED}git is required but not installed.${NC}"; exit 1; }
 command -v gh >/dev/null 2>&1 || { echo -e "${YELLOW}gh CLI not found. Install with: brew install gh${NC}"; }
+
+# All repositories are private: let git use the gh login for HTTPS
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    gh auth setup-git >/dev/null 2>&1 || true
+else
+    echo -e "${YELLOW}Not logged in to GitHub CLI. Run: gh auth login && gh auth setup-git${NC}"
+fi
 
 # Create dev directory
 mkdir -p "$DEV_DIR"
